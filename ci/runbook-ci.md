@@ -32,7 +32,7 @@ Checkout
 ## PHASE 1 — Démarrer Jenkins + SonarQube
 
 > **Changement important** : Jenkins utilise désormais une image custom avec version fixée
-> (`2.462.3-lts-jdk17`), tous les plugins pré-installés, Trivy et Maven intégrés.
+> (`2.541.3-lts-jdk17`), tous les plugins pré-installés, Trivy et Maven intégrés.
 > Plus besoin d'installer quoi que ce soit manuellement après le démarrage.
 
 ### Étape 1.1 — Prérequis système
@@ -58,7 +58,7 @@ docker stop jenkins && docker rm jenkins
 Si tu avais déjà lancé l'ancienne version (`lts-jdk17` sans version fixée) :
 
 ```bash
-cd "/Users/bichri/Documents/MasterClass Java/poc-openId/poc-Keycloak-main"
+cd "$(git rev-parse --show-toplevel)"
 
 # Arrêter et supprimer les anciens conteneurs + volumes Jenkins
 # (les volumes SonarQube sont conservés)
@@ -70,9 +70,9 @@ docker rmi jenkins/jenkins:lts-jdk17 2>/dev/null || true
 ### Étape 1.3 — Builder et démarrer les conteneurs
 
 ```bash
-cd "/Users/bichri/Documents/MasterClass Java/poc-openId/poc-Keycloak-main"
+cd "$(git rev-parse --show-toplevel)"
 
-# 1ère fois : builder l'image Jenkins custom (~5-10 min selon connexion)
+# 1ère fois : builder l’image Jenkins custom (~5-10 min selon connexion)
 docker compose -f ci/docker-compose-ci-tools.yml up -d --build
 
 # Suivre la progression du build Jenkins
@@ -135,7 +135,7 @@ Vérifie la présence de :
 
 Si un plugin manque (cas rare de téléchargement échoué lors du build) :
 ```bash
-# Rebuilder l'image sans cache
+# Rebuilder l’image sans cache
 docker compose -f ci/docker-compose-ci-tools.yml build --no-cache jenkins
 docker compose -f ci/docker-compose-ci-tools.yml up -d jenkins
 ```
@@ -307,7 +307,7 @@ docker exec -u root jenkins \
 Le Jenkinsfile doit être accessible depuis Jenkins via Git :
 
 ```bash
-cd "/Users/bichri/Documents/MasterClass Java/poc-openId/poc-Keycloak-main"
+cd "$(git rev-parse --show-toplevel)"
 
 git add Jenkinsfile \
         demo/app-springboot/Dockerfile \
@@ -394,7 +394,7 @@ docker images | grep poc-keycloak
 # Conteneurs UAT/PREPROD actifs (après approbation)
 docker ps | grep poc-keycloak
 
-# Tester l'app UAT
+# Tester l’app UAT
 curl http://localhost:8091/actuator/health
 ```
 

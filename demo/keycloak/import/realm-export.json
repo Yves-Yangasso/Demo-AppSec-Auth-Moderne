@@ -40,6 +40,22 @@
       "webOrigins": [
         "http://localhost:4200"
       ]
+    },
+    {
+      "clientId": "myapp",
+      "enabled": true,
+      "bearerOnly": false,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "rootUrl": "http://localhost:8081",
+      "baseUrl": "http://localhost:8081",
+      "redirectUris": [
+        "http://localhost:8081/*"
+      ],
+      "webOrigins": [
+        "http://localhost:8081"
+      ]
     }
   ],
   "users": [
