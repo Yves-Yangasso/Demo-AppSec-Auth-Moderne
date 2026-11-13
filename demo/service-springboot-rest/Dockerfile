@@ -1,5 +1,5 @@
 # ── Stage 1 : Build ──────────────────────────────────────────────────────────
-FROM maven:3.9.6-eclipse-temurin-17-alpine AS builder
+FROM maven:3.9.6-eclipse-temurin-17 AS builder
 
 WORKDIR /build
 
@@ -10,11 +10,11 @@ COPY src ./src
 RUN mvn clean package -DskipTests -B -q
 
 # ── Stage 2 : Runtime minimal ─────────────────────────────────────────────────
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:17-jre
 
 WORKDIR /app
 
-RUN addgroup -S spring && adduser -S spring -G spring
+RUN groupadd --system spring && useradd --system --gid spring --no-create-home spring
 USER spring:spring
 
 COPY --from=builder /build/target/*.jar app.jar
