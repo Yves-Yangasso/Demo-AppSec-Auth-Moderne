@@ -101,6 +101,9 @@ pipeline {
                                 -DnvdApiKey=${NVD_KEY} \
                                 -DfailBuildOnCVSS=10 \
                                 -DcveValidForHours=12 \
+                                -DnvdApiResultsPerPage=500 \
+                                -DnvdApiDelay=4000 \
+                                -DnvdMaxRetryCount=10 \
                                 -Dformat=ALL \
                                 -DsuppressionFile=owasp-suppressions.xml \
                                 -B || true
@@ -112,6 +115,9 @@ pipeline {
                                 -DnvdApiKey=${NVD_KEY} \
                                 -DfailBuildOnCVSS=10 \
                                 -DcveValidForHours=12 \
+                                -DnvdApiResultsPerPage=500 \
+                                -DnvdApiDelay=4000 \
+                                -DnvdMaxRetryCount=10 \
                                 -Dformat=ALL \
                                 -B || true
                         '''
@@ -137,7 +143,7 @@ pipeline {
                 withSonarQubeEnv('SonarQube') {
                     dir('demo/app-springboot') {
                         sh '''
-                            mvn sonar:sonar \
+                            mvn org.sonarsource.scanner.maven:sonar-maven-plugin:4.0.0.4121:sonar \
                                 -Dsonar.projectKey=${SONAR_KEY_APP} \
                                 -Dsonar.projectName="POC Keycloak - App" \
                                 -Dsonar.java.source=17 \
@@ -147,7 +153,7 @@ pipeline {
                     }
                     dir('demo/service-springboot-rest') {
                         sh '''
-                            mvn sonar:sonar \
+                            mvn org.sonarsource.scanner.maven:sonar-maven-plugin:4.0.0.4121:sonar \
                                 -Dsonar.projectKey=${SONAR_KEY_SVC} \
                                 -Dsonar.projectName="POC Keycloak - Service REST" \
                                 -Dsonar.java.source=17 \

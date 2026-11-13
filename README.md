@@ -346,3 +346,4 @@ Procédure complète : [`ci/runbook-ci.md`](ci/runbook-ci.md).
 - [`demo/keycloak-angular/README.md`](demo/keycloak-angular/README.md) — exemple Angular
 - [`ci/runbook-ci.md`](ci/runbook-ci.md) — pipeline DevSecOps
 - [`ci/README.md`](ci/README.md) — tests Jenkins et déploiement UAT / PREPROD
+- [`ci/deploiement-kubernetes.md`](ci/deploiement-kubernetes.md) — guide complet du déploiement Kubernetes (Jenkins + SonarQube)
