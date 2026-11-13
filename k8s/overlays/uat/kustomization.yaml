@@ -10,9 +10,9 @@ resources:
 
 # newTag est remplacé par Jenkins (IMAGE_TAG = vN) avant le kubectl apply
 images:
-  - name: moustaphisene/poc-keycloak-app
+  - name: bao236/poc-keycloak-app
     newTag: latest
-  - name: moustaphisene/poc-keycloak-service
+  - name: bao236/poc-keycloak-service
     newTag: latest
 
 patches:

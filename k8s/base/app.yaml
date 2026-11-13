@@ -18,7 +18,7 @@ spec:
       automountServiceAccountToken: false
       containers:
         - name: app
-          image: moustaphisene/poc-keycloak-app:latest
+          image: bao236/poc-keycloak-app:latest
           ports:
             - containerPort: 8090
           env:

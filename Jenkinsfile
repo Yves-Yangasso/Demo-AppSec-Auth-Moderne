@@ -25,7 +25,7 @@ pipeline {
     }
 
     environment {
-        DOCKER_HUB_USER   = 'moustaphisene'
+        DOCKER_HUB_USER   = 'bao236'
         APP_IMAGE         = "${DOCKER_HUB_USER}/poc-keycloak-app"
         SVC_IMAGE         = "${DOCKER_HUB_USER}/poc-keycloak-service"
         IMAGE_TAG         = "v${BUILD_NUMBER}"

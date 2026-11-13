@@ -160,7 +160,7 @@ Crée chaque credential dans l'ordre :
 **Credential 1 — Docker Hub**
 ```
 Kind     : Username with password
-Username : moustaphisene
+Username : bao236
 Password : <ton token Docker Hub>
 ID       : dockerhub-credentials
 ```
@@ -361,7 +361,7 @@ git push origin master
 ```
 Definition  : Pipeline script from SCM
 SCM         : Git
-Repository  : https://github.com/moustaphisene/<ton-repo>.git
+Repository  : https://github.com/Yves-Yangasso/Demo-AppSec-Auth-Moderne.git
 Branch      : */master
 Script Path : Jenkinsfile
 ```
@@ -391,7 +391,7 @@ Clique sur le build `#1` → **Console Output** pour suivre en live.
 [✓] Trivy FS          → scan filesystem, rapport archivé
 [✓] Docker Build      → 2 images buildées en parallèle
 [✓] Trivy Image       → scan des images avant push
-[✓] Docker Push       → push sur Docker Hub (moustaphisene/poc-keycloak-app)
+[✓] Docker Push       → push sur Docker Hub (bao236/poc-keycloak-app)
 [⏸] UAT Approval     → le pipeline attend ton clic "Approuver" dans Jenkins
 [✓] UAT Deploy        → conteneur poc-keycloak-uat démarré sur port 8091
 [⏸] PREPROD Approval → idem, timeout 2h

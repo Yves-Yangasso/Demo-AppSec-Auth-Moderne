@@ -118,7 +118,7 @@ Scan des dossiers `demo/app-springboot` et `demo/service-springboot-rest` (dépe
 
 ### Étapes 6 et 7 — Docker Build et Trivy Image Scan
 
-Construction des images `moustaphisene/poc-keycloak-app` et `moustaphisene/poc-keycloak-service` (tags `vN` et `latest`), puis scan des images avant publication.
+Construction des images `bao236/poc-keycloak-app` et `bao236/poc-keycloak-service` (tags `vN` et `latest`), puis scan des images avant publication.
 
 **Où voir le résultat :** artefacts `trivy-image-app.txt` et `trivy-image-service.txt`.
 **Échec :** non bloquant (`--exit-code 0`).
@@ -126,7 +126,7 @@ Construction des images `moustaphisene/poc-keycloak-app` et `moustaphisene/poc-k
 ### Étape 8 — Docker Push
 
 Publication des 4 tags sur Docker Hub (credential `dockerhub-credentials`).
-Vérifier : `https://hub.docker.com/r/moustaphisene/poc-keycloak-app/tags`.
+Vérifier : `https://hub.docker.com/r/bao236/poc-keycloak-app/tags`.
 
 ### Résumé des critères bloquants
 
@@ -201,7 +201,7 @@ kubectl -n poc-uat rollout undo deployment/poc-keycloak-app-uat
 kubectl -n poc-uat rollout undo deployment/poc-keycloak-service-uat
 
 # Ou forcer un tag précis (chaque build publie un tag immuable vN)
-kubectl -n poc-uat set image deployment/poc-keycloak-app-uat app=moustaphisene/poc-keycloak-app:v11
+kubectl -n poc-uat set image deployment/poc-keycloak-app-uat app=bao236/poc-keycloak-app:v11
 ```
 
 Pour PREPROD, remplacer `uat` par `preprod`.
