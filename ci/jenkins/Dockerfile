@@ -67,6 +67,19 @@ ENV PATH="${MAVEN_HOME}/bin:${PATH}"
 RUN mvn --version
 
 # ---------------------------------------------------------------------------
+# 5b. kubectl — déploiement Kubernetes (UAT / PREPROD), checksum vérifié.
+#     Garder la version à ±1 mineure de celle du cluster (kubectl version).
+# ---------------------------------------------------------------------------
+ARG KUBECTL_VERSION=v1.34.1
+RUN ARCH="$(dpkg --print-architecture)" && \
+    curl -fsSLo /usr/local/bin/kubectl \
+        "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${ARCH}/kubectl" && \
+    echo "$(curl -fsSL https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${ARCH}/kubectl.sha256)  /usr/local/bin/kubectl" \
+        | sha256sum -c - && \
+    chmod +x /usr/local/bin/kubectl && \
+    kubectl version --client
+
+# ---------------------------------------------------------------------------
 # 6. Plugins Jenkins — pré-installés à l'image build pour éviter les
 #    conflits de version au runtime. jenkins-plugin-cli résout les versions
 #    compatibles avec la version Jenkins embarquée automatiquement.

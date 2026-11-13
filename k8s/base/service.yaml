@@ -1,0 +1,78 @@
+# Service REST Spring Boot (service-springboot-rest) — port 8091, interne au cluster
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: poc-keycloak-service
+  labels:
+    app: poc-keycloak-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: poc-keycloak-service
+  template:
+    metadata:
+      labels:
+        app: poc-keycloak-service
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: service
+          image: moustaphisene/poc-keycloak-service:latest
+          ports:
+            - containerPort: 8091
+          env:
+            - name: KEYCLOAK_ISSUER_URI
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-config
+                  key: KEYCLOAK_ISSUER_URI
+            # Surcharge de spring.security.oauth2.resourceserver.jwt.* (localhost en dur dans application.yml)
+            - name: SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUERURI
+              value: $(KEYCLOAK_ISSUER_URI)
+            - name: SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWKSETURI
+              value: $(KEYCLOAK_ISSUER_URI)/protocol/openid-connect/certs
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 512Mi
+          startupProbe:
+            tcpSocket:
+              port: 8091
+            periodSeconds: 5
+            failureThreshold: 30
+          readinessProbe:
+            tcpSocket:
+              port: 8091
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 8091
+            periodSeconds: 20
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: poc-keycloak-service
+  labels:
+    app: poc-keycloak-service
+spec:
+  type: ClusterIP
+  selector:
+    app: poc-keycloak-service
+  ports:
+    - port: 8091
+      targetPort: 8091

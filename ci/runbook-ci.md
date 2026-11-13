@@ -23,8 +23,8 @@ Checkout
                            └── Docker Build            [parallèle : app + service]
                                 └── Trivy Image Scan   [avant push]
                                      └── Docker Push
-                                          └── UAT — Approbation manuelle + Deploy (port 8091)
-                                               └── PREPROD — Approbation manuelle + Deploy (port 8092)
+                                          └── UAT — Approbation manuelle + Deploy K8s (namespace poc-uat, :30091)
+                                               └── PREPROD — Approbation manuelle + Deploy K8s (namespace poc-preprod, :30092)
 ```
 
 ---
@@ -203,6 +203,29 @@ Kind   : Secret text
 Secret : <valeur de KEYCLOAK_CLIENT_SECRET>
 ID     : keycloak-client-secret-preprod
 ```
+
+**Credential 7 — Kubeconfig Docker Desktop**
+
+1. Activer Kubernetes : Docker Desktop → Settings → Kubernetes → *Enable Kubernetes*.
+2. Exporter un kubeconfig autonome, joignable depuis le conteneur Jenkins :
+   ```bash
+   kubectl config view --minify --flatten --context docker-desktop \
+     | sed 's#server: https://127.0.0.1:#server: https://kubernetes.docker.internal:#' \
+     > /tmp/kubeconfig-jenkins
+   ```
+3. Vérifier que Jenkins atteint bien l'API du cluster :
+   ```bash
+   docker cp /tmp/kubeconfig-jenkins jenkins:/tmp/kc
+   docker exec jenkins kubectl --kubeconfig /tmp/kc get nodes   # attendu : docker-desktop   Ready
+   docker exec jenkins rm /tmp/kc
+   ```
+4. Créer le credential :
+   ```
+   Kind : Secret file
+   File : /tmp/kubeconfig-jenkins
+   ID   : kubeconfig-docker-desktop
+   ```
+5. Supprimer `/tmp/kubeconfig-jenkins` (il contient un certificat admin du cluster).
 
 ---
 

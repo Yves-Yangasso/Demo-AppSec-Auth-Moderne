@@ -1,0 +1,34 @@
+# PREPROD — namespace poc-preprod, app exposée sur http://localhost:30092
+# Le suffixe "-preprod" donne au service REST le nom attendu par application-preprod.yml :
+#   http://poc-keycloak-service-preprod:8091/planets
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: poc-preprod
+nameSuffix: -preprod
+resources:
+  - ../../base
+
+# newTag est remplacé par Jenkins (IMAGE_TAG = vN) avant le kubectl apply
+images:
+  - name: moustaphisene/poc-keycloak-app
+    newTag: latest
+  - name: moustaphisene/poc-keycloak-service
+    newTag: latest
+
+patches:
+  - target:
+      kind: Deployment
+      name: poc-keycloak-app
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: SPRING_PROFILES_ACTIVE
+          value: preprod
+  - target:
+      kind: Service
+      name: poc-keycloak-app
+    patch: |-
+      - op: add
+        path: /spec/ports/0/nodePort
+        value: 30092

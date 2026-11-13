@@ -1,0 +1,34 @@
+# UAT — namespace poc-uat, app exposée sur http://localhost:30091
+# Le suffixe "-uat" donne au service REST le nom attendu par application-uat.yml :
+#   http://poc-keycloak-service-uat:8091/planets
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: poc-uat
+nameSuffix: -uat
+resources:
+  - ../../base
+
+# newTag est remplacé par Jenkins (IMAGE_TAG = vN) avant le kubectl apply
+images:
+  - name: moustaphisene/poc-keycloak-app
+    newTag: latest
+  - name: moustaphisene/poc-keycloak-service
+    newTag: latest
+
+patches:
+  - target:
+      kind: Deployment
+      name: poc-keycloak-app
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: SPRING_PROFILES_ACTIVE
+          value: uat
+  - target:
+      kind: Service
+      name: poc-keycloak-app
+    patch: |-
+      - op: add
+        path: /spec/ports/0/nodePort
+        value: 30091

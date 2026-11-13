@@ -19,10 +19,14 @@
       "rootUrl": "http://localhost:8090",
       "baseUrl": "http://localhost:8090",
       "redirectUris": [
-        "http://localhost:8090/*"
+        "http://localhost:8090/*",
+        "http://localhost:30091/*",
+        "http://localhost:30092/*"
       ],
       "webOrigins": [
-        "http://localhost:8090"
+        "http://localhost:8090",
+        "http://localhost:30091",
+        "http://localhost:30092"
       ]
     },
     {

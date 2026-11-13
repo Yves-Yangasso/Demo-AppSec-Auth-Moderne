@@ -1,6 +1,6 @@
 // =============================================================================
 // Jenkins CI/CD Pipeline — POC Keycloak Spring Boot
-// Stages : DEV → OWASP → SonarQube → Trivy → Docker → UAT → PREPROD
+// Stages : DEV → OWASP → SonarQube → Trivy → Docker → UAT (K8s) → PREPROD (K8s)
 //
 // Credentials Jenkins requises (Manage Jenkins > Credentials) :
 //   dockerhub-credentials         → Username/Password (Docker Hub)
@@ -9,6 +9,7 @@
 //   keycloak-url-preprod          → Secret text (ex: http://keycloak-preprod:8080)
 //   keycloak-client-secret-uat    → Secret text
 //   keycloak-client-secret-preprod→ Secret text
+//   kubeconfig-docker-desktop     → Secret file (kubeconfig du cluster Docker Desktop)
 //
 // Serveur SonarQube configuré sous le nom "SonarQube" :
 //   Manage Jenkins > Configure System > SonarQube Servers
@@ -330,40 +331,29 @@ pipeline {
         stage('UAT - Deploy') {
             steps {
                 withCredentials([
-                    usernamePassword(credentialsId: 'dockerhub-credentials',
-                                     usernameVariable: 'DOCKER_USER',
-                                     passwordVariable: 'DOCKER_PASS'),
+                    file(credentialsId: 'kubeconfig-docker-desktop',
+                         variable: 'KUBECONFIG'),
                     string(credentialsId: 'keycloak-url-uat',
                            variable: 'KEYCLOAK_URL'),
                     string(credentialsId: 'keycloak-client-secret-uat',
                            variable: 'KC_SECRET')
                 ]) {
                     sh '''
-                        echo "${DOCKER_PASS}" | docker login -u "${DOCKER_USER}" --password-stdin
-                        docker pull ${APP_IMAGE}:${IMAGE_TAG}
+                        kubectl create namespace poc-uat --dry-run=client -o yaml | kubectl apply -f -
 
-                        docker stop poc-keycloak-uat  2>/dev/null || true
-                        docker rm   poc-keycloak-uat  2>/dev/null || true
+                        kubectl -n poc-uat create secret generic keycloak-config \
+                            --from-literal=KEYCLOAK_ISSUER_URI="${KEYCLOAK_URL}/realms/bzhcamp" \
+                            --from-literal=KEYCLOAK_CLIENT_SECRET="${KC_SECRET}" \
+                            --dry-run=client -o yaml | kubectl apply -f -
 
-                        docker run -d \
-                            --name poc-keycloak-uat \
-                            -p 8091:8090 \
-                            -e SPRING_PROFILES_ACTIVE=uat \
-                            -e KEYCLOAK_CLIENT_SECRET="${KC_SECRET}" \
-                            -e KEYCLOAK_ISSUER_URI="${KEYCLOAK_URL}/realms/bzhcamp" \
-                            --health-cmd="wget -qO- http://localhost:8090/actuator/health || exit 1" \
-                            --health-interval=15s \
-                            --health-retries=5 \
-                            --restart unless-stopped \
-                            ${APP_IMAGE}:${IMAGE_TAG}
+                        sed -i "s/newTag: .*/newTag: ${IMAGE_TAG}/" k8s/overlays/uat/kustomization.yaml
+                        kubectl apply -k k8s/overlays/uat
 
-                        echo "UAT deploye sur le port 8091 -> image ${IMAGE_TAG}"
+                        kubectl -n poc-uat rollout status deployment/poc-keycloak-service-uat --timeout=180s
+                        kubectl -n poc-uat rollout status deployment/poc-keycloak-app-uat --timeout=180s
+
+                        echo "UAT deploye sur http://localhost:30091 -> image ${IMAGE_TAG}"
                     '''
-                }
-            }
-            post {
-                always {
-                    sh 'docker logout || true'
                 }
             }
         }
@@ -391,40 +381,29 @@ pipeline {
         stage('PREPROD - Deploy') {
             steps {
                 withCredentials([
-                    usernamePassword(credentialsId: 'dockerhub-credentials',
-                                     usernameVariable: 'DOCKER_USER',
-                                     passwordVariable: 'DOCKER_PASS'),
+                    file(credentialsId: 'kubeconfig-docker-desktop',
+                         variable: 'KUBECONFIG'),
                     string(credentialsId: 'keycloak-url-preprod',
                            variable: 'KEYCLOAK_URL'),
                     string(credentialsId: 'keycloak-client-secret-preprod',
                            variable: 'KC_SECRET')
                 ]) {
                     sh '''
-                        echo "${DOCKER_PASS}" | docker login -u "${DOCKER_USER}" --password-stdin
-                        docker pull ${APP_IMAGE}:${IMAGE_TAG}
+                        kubectl create namespace poc-preprod --dry-run=client -o yaml | kubectl apply -f -
 
-                        docker stop poc-keycloak-preprod  2>/dev/null || true
-                        docker rm   poc-keycloak-preprod  2>/dev/null || true
+                        kubectl -n poc-preprod create secret generic keycloak-config \
+                            --from-literal=KEYCLOAK_ISSUER_URI="${KEYCLOAK_URL}/realms/bzhcamp" \
+                            --from-literal=KEYCLOAK_CLIENT_SECRET="${KC_SECRET}" \
+                            --dry-run=client -o yaml | kubectl apply -f -
 
-                        docker run -d \
-                            --name poc-keycloak-preprod \
-                            -p 8092:8090 \
-                            -e SPRING_PROFILES_ACTIVE=preprod \
-                            -e KEYCLOAK_CLIENT_SECRET="${KC_SECRET}" \
-                            -e KEYCLOAK_ISSUER_URI="${KEYCLOAK_URL}/realms/bzhcamp" \
-                            --health-cmd="wget -qO- http://localhost:8090/actuator/health || exit 1" \
-                            --health-interval=15s \
-                            --health-retries=5 \
-                            --restart unless-stopped \
-                            ${APP_IMAGE}:${IMAGE_TAG}
+                        sed -i "s/newTag: .*/newTag: ${IMAGE_TAG}/" k8s/overlays/preprod/kustomization.yaml
+                        kubectl apply -k k8s/overlays/preprod
 
-                        echo "PREPROD deploye sur le port 8092 -> image ${IMAGE_TAG}"
+                        kubectl -n poc-preprod rollout status deployment/poc-keycloak-service-preprod --timeout=180s
+                        kubectl -n poc-preprod rollout status deployment/poc-keycloak-app-preprod --timeout=180s
+
+                        echo "PREPROD deploye sur http://localhost:30092 -> image ${IMAGE_TAG}"
                     '''
-                }
-            }
-            post {
-                always {
-                    sh 'docker logout || true'
                 }
             }
         }

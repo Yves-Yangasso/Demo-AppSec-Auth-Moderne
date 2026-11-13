@@ -1,0 +1,80 @@
+# Application web Spring Boot (app-springboot) — port 8090
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: poc-keycloak-app
+  labels:
+    app: poc-keycloak-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: poc-keycloak-app
+  template:
+    metadata:
+      labels:
+        app: poc-keycloak-app
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: app
+          image: moustaphisene/poc-keycloak-app:latest
+          ports:
+            - containerPort: 8090
+          env:
+            # Secret créé par Jenkins dans chaque namespace (voir Jenkinsfile)
+            - name: KEYCLOAK_ISSUER_URI
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-config
+                  key: KEYCLOAK_ISSUER_URI
+            - name: KEYCLOAK_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-config
+                  key: KEYCLOAK_CLIENT_SECRET
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 512Mi
+          # Pas d'actuator dans le projet : sondes TCP sur le port HTTP
+          startupProbe:
+            tcpSocket:
+              port: 8090
+            periodSeconds: 5
+            failureThreshold: 30
+          readinessProbe:
+            tcpSocket:
+              port: 8090
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 8090
+            periodSeconds: 20
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: poc-keycloak-app
+  labels:
+    app: poc-keycloak-app
+spec:
+  type: NodePort
+  selector:
+    app: poc-keycloak-app
+  ports:
+    - port: 8090
+      targetPort: 8090
