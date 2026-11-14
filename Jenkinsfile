@@ -244,7 +244,9 @@ pipeline {
         // Trivy — Image Scan (avant push)
         // =====================================================================
         stage('Trivy Image Scan') {
-            parallel {
+            // Les scans d'images partagent le cache local Trivy : les lancer
+            // simultanément peut provoquer une collision sur ce cache.
+            stages {
                 stage('Scan App Image') {
                     steps {
                         sh '''
